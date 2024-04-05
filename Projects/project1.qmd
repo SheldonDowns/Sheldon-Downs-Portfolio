@@ -1,7 +1,7 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Project 1"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Sheldon Downs"
 format:
   html:
     self-contained: true
@@ -25,4 +25,108 @@ execute:
     
 ---
 
-### Paste in a template
+_THIS `.qmd` FILE SHOULD BE USED TO WRITE YOUR REPORT.  YOU WILL NEED TO COMPILE THE REPORT INTO A `.html` DOCUMENT AND SUBMIT IT ON CANVAS._
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+```
+
+
+## Elevator pitch
+In this project I am using a data set containing all the children names in the United States of America from 1911 to 2015. Using this data set we are able to see different naming trends and the popularity of names and how they might be influenced by popular culture.
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+```
+
+__Highlight the Questions and Tasks__
+
+## Question|Task 1
+How does your name at your birth year compare to its use historically?
+
+
+```{python}
+Sheldon = df.query("name == 'Sheldon'")
+Sheldonplot = px.line(Sheldon,
+x = 'year', 
+y = 'Total',
+title = 'Children named Sheldon')
+
+Sheldonplot.add_vline(x=2002)
+
+Sheldonplot.show()
+```
+
+When I born in 2002 the name Sheldon was dropping in popularity compared  to what it had been in the past even though it was not a very popular peaking at 585 kids named in the United States in 1992
+
+## Question|Task 2
+If you talked to someone named Brittany on the phone, what is your guess of his or her age? What ages would you not guess?
+
+
+```{python}
+brittany = df.query("name == 'Brittany'")
+
+brittanyplot = px.line(brittany, 
+x= 'year',
+y= 'Total',
+title = 'Children Named Brittany')
+
+brittanyplot.add_vline(x=1994)
+
+brittanyplot
+
+
+```
+
+If I was talking to someone named Brittany on the phone, I would guess that there age would be around 29 years old, so born in 1994. I would not guess that they would be any older than 35 years old. My guess was not too far off as the name peaked in 1990.
+
+## Question|Task 3
+Mary, Martha, Peter, and Paul are all Christian names. From 1920 - 2000, compare the name usage of each of the four names. What trends do you notice?
+
+
+```{python}
+
+df2 = df.query("name == 'Mary' or name == 'Martha' or name == 'Peter' or name =='Paul' ")
+
+
+fig = px.line(
+  df2,
+  x='year', 
+  y='Total',
+  title = 'Mary, Martha, Peter, and Paul naming trend 1920-2000',
+  color='name'
+)
+fig.update_layout(xaxis_range=[1920, 2000]) #Limits x axis range 1920 - 2000
+
+```
+
+The trend from the graph shows that the usage of the names have all declined with Mary dropping the most. It is interesting to see that all four peaks during the 1950s, but all are used a lot less going into the 2000s.
+
+## Question|Task 4
+
+Think of a unique name from a famous movie. Plot the usage of that name and see how changes line up with the movie release. Does it look like the movie had an effect on usage?
+
+
+```{python}
+rocky = df.query("name == 'Rocky'")
+
+rockyplot = px.line(rocky, 
+x= 'year',
+y= 'Total',
+title = 'Children named Rocky')
+
+rockyplot.add_vline(x=1976)
+
+rockyplot
+
+
+```
+
+The unique name from a famous movie that I chose was Rocky from the classic boxing movie Rocky released in 1976. The years after the release of the film shows that the name grew a bit in popularity, but not by a lot. Surprisingly it was most popular 21 years earlier.
