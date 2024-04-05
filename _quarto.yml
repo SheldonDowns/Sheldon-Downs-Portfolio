@@ -10,10 +10,10 @@ website:
 
   page-footer: 
     border: true
-    left: "Sheldon Downs 2023©"
+    left: "Sheldon Downs 2024©"
     right: 
       - icon: linkedin
-        href: Your_LinkedIn_URL
+        href: https://www.linkedin.com/in/sheldon-downs-b239521ba/
 
   navbar:
     background: primary
