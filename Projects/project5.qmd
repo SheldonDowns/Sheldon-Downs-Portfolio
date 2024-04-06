@@ -1,7 +1,7 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Client Report - Project 5"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Sheldon Downs"
 format:
   html:
     self-contained: true
@@ -25,4 +25,318 @@ execute:
     
 ---
 
-### Paste in a template
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
+
+```
+
+
+## Elevator pitch
+
+_paste your elevator pitch here_
+_A SHORT (4-5 SENTENCES) PARAGRAPH THAT `DESCRIBES KEY INSIGHTS` TAKEN FROM METRICS IN THE PROJECT RESULTS THINK TOP OR MOST IMPORTANT RESULTS._
+
+```{python}
+#| label: project-data
+#| code-summary: Read and format project data
+
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_csv('StarWars.csv', encoding = "latin", header=[0, 1] )
+
+df
+```
+
+
+__Highlight the Questions and Tasks__
+
+## QUESTION|TASK 1
+
+__Shorten the column names and clean them up for easier use with pandas. Provide a table or list that exemplifies how you fixed the names.__
+
+_type your results and analysis here_
+
+```{python}
+df2 = df.copy()
+df2.columns = df2.columns.map('|'.join).str.strip()
+list(df2.columns)  
+```
+
+```{python}
+df3 = df2.copy()
+
+
+# Dictionary containing old column names as keys and new column names as values
+names = { 
+    "RespondentID|Unnamed: 0_level_1": "ID",
+    "Have you seen any of the 6 films in the Star Wars franchise?|Response": "Have you seen Starwars?",
+    "Do you consider yourself to be a fan of the Star Wars film franchise?|Response": "Are you a Starwars fan?",
+    'Which of the following Star Wars films have you seen? Please select all that apply.|Star Wars: Episode I  The Phantom Menace': "Have you seen Episode I The Phantom Menace?", 'Unnamed: 4_level_0|Star Wars: Episode II  Attack of the Clones': "Have you seen Episode II Attack of the Clones?", 'Unnamed: 5_level_0|Star Wars: Episode III  Revenge of the Sith': "Have you seen Episode III Revenge of the Sith?", 'Unnamed: 6_level_0|Star Wars: Episode IV  A New Hope':"Have you seen Episode IV A New Hope?", 'Unnamed: 7_level_0|Star Wars: Episode V The Empire Strikes Back':"Have you seen Episode V The Empire Strikes Back?",'Unnamed: 8_level_0|Star Wars: Episode VI Return of the Jedi':"Have you seen Episode VI Return of the Jedi",  'Please rank the Star Wars films in order of preference with 1 being your favorite film in the franchise and 6 being your least favorite film.|Star Wars: Episode I  The Phantom Menace': "Rank Episode I The Phantom Menace",  'Unnamed: 10_level_0|Star Wars: Episode II  Attack of the Clones': "Ranke Episode II  Attack of the Clones", 'Unnamed: 11_level_0|Star Wars: Episode III  Revenge of the Sith':"Rank Episode III  Revenge of the Sith",  'Unnamed: 12_level_0|Star Wars: Episode IV  A New Hope':"Rank Episode IV  A New Hope", 'Unnamed: 13_level_0|Star Wars: Episode V The Empire Strikes Back':"Rank Episode V The Empire Strikes Back",  'Unnamed: 14_level_0|Star Wars: Episode VI Return of the Jedi': "Rank Episode VI Return of the Jedi", 'Please state whether you view the following characters favorably, unfavorably, or are unfamiliar with him/her.|Han Solo': "How do you view Han Solo?",  'Unnamed: 16_level_0|Luke Skywalker': "How do you view Luke Skywalker?", 'Unnamed: 17_level_0|Princess Leia Organa':"How do you view Princess Leia?",  'Unnamed: 18_level_0|Anakin Skywalker': "How do you view Anakin Skywalker?", 'Unnamed: 19_level_0|Obi Wan Kenobi': "How do you view Obi Wan Kenobi",  'Unnamed: 20_level_0|Emperor Palpatine': "How do you view Emperor Palpatine?",  'Unnamed: 21_level_0|Darth Vader':"How do you view Darth Vader?",  'Unnamed: 22_level_0|Lando Calrissian': "How do you view Lando Calrissian?",  'Unnamed: 23_level_0|Boba Fett':"How do you view Boba Fett?",  'Unnamed: 24_level_0|C-3P0': "How do you view Boba Fett?",  'Unnamed: 25_level_0|R2 D2': "How do you view R2 D2?",  'Unnamed: 26_level_0|Jar Jar Binks': "How do you view Jar Jar Binks?",  'Unnamed: 27_level_0|Padme Amidala': "How do you view Padme Amidala?",  'Unnamed: 28_level_0|Yoda' : "How do you view Yoda?", 'Which character shot first?|Response': "Who shot first?",  'Are you familiar with the Expanded Universe?|Response': 'Are you familiar with the Expanded Universe?',  'Do you consider yourself to be a fan of the Expanded Universe?\x8cæ|Response': "Are you a fan of the expanded universe?",  'Do you consider yourself to be a fan of the Star Trek franchise?|Response': "Are you a fan of Star Trek?",  'Gender|Response': "Gender",  'Age|Response':"Age Range",  'Household Income|Response': 'Household Income Range',  'Education|Response': 'Education Range',  'Location (Census Region)|Response': 'Location (Census Region)'
+
+}
+
+# Renaming columns using the rename() method
+df3.rename(columns=names, inplace=True)
+
+df3
+
+
+```
+
+```{python}
+# list(df3.columns)
+```
+
+
+## QUESTION|TASK 2
+
+__Clean and format the data so that it can be used in a machine learning model. As you format the data, you should complete each item listed below. In your final report provide example(s) of the reformatted data with a short description of the changes made.__
+
+_type your results and analysis here_
+
+# Task a
+__Filter the dataset to respondents that have seen at least one film.__
+
+```{python}
+df4 = df3.copy()
+
+df4 = df4[df4['Have you seen Starwars?'] != 'No']
+df4
+```
+
+# Task b
+__Create a new column that converts the age ranges to a single number. Drop the age range categorical column.__
+
+```{python}
+
+age_map = {
+    '18-29': 0,
+    '30-44': 1,
+    '45-60': 2,
+    '> 60': 3
+}
+
+df4['Age'] = df4['Age Range'].map(age_map)
+
+
+df4 = df4.drop(['Age Range'], axis=1)
+
+df4
+
+```
+
+# Task c
+__Create a new column that converts the education groupings to a single number. Drop the school categorical column__
+
+```{python}
+
+edu_map = {
+  'Less than high school degree':0,
+  'High school degree':1,
+  'Some college or Associate degree':2,
+  'Bachelor degree':3,
+  'Graduate degree':4,
+
+}
+
+df4['Education'] = df4['Education Range'].map(edu_map)
+df4 = df4.drop(['Education Range'], axis=1)
+df4
+
+```
+
+# Task d
+__Create a new column that converts the income ranges to a single number. Drop the income range categorical column.__
+
+```{python}
+cum_map = {
+  '$0 - $24,999': 0,
+   '$100,000 - $149,999':1, 
+   '$25,000 - $49,999':2,
+       '$50,000 - $99,999':3,
+        '$150,000+':4
+}
+
+df4['Income'] = df4['Household Income Range'].map(cum_map)
+df4
+```
+
+# Task e
+__Create your target (also known as “y” or “label”) column based on the new income range column.__
+
+```{python}
+range_map={
+  '$0 - $24,999': 0,
+   '$100,000 - $149,999':0, 
+   '$25,000 - $49,999':0,
+       '$50,000 - $99,999':1,
+        '$150,000+':1
+}
+
+df4['More than 50k'] = df4['Household Income Range'].map(range_map)
+df4 = df4.drop(['Household Income Range'], axis= 1)
+
+df4
+
+```
+
+# Task f
+__One-hot encode all remaining categorical columns.__
+
+```{python}
+df5 = df4.copy()
+
+df5 = pd.get_dummies(df5, columns=['Have you seen Episode I The Phantom Menace?' ,'Have you seen Episode II Attack of the Clones?', 'Have you seen Episode III Revenge of the Sith?', 'Have you seen Episode IV A New Hope?', 'Have you seen Episode V The Empire Strikes Back?', 'Have you seen Episode VI Return of the Jedi',
+ ], prefix='Episode')
+
+df5 = pd.get_dummies(df5, columns=['Rank Episode I The Phantom Menace',
+ 'Ranke Episode II  Attack of the Clones',
+ 'Rank Episode III  Revenge of the Sith',
+ 'Rank Episode IV  A New Hope',
+ 'Rank Episode V The Empire Strikes Back',
+ 'Rank Episode VI Return of the Jedi', 'Have you seen Starwars?',
+ 'Are you a Starwars fan?',
+ 'How do you view Han Solo?',
+ 'How do you view Luke Skywalker?',
+ 'How do you view Princess Leia?',
+ 'How do you view Anakin Skywalker?',
+ 'How do you view Obi Wan Kenobi',
+ 'How do you view Emperor Palpatine?',
+ 'How do you view Darth Vader?',
+ 'How do you view Lando Calrissian?',
+ 'How do you view Boba Fett?',
+ 'How do you view Boba Fett?',
+ 'How do you view R2 D2?',
+ 'How do you view Jar Jar Binks?',
+ 'How do you view Padme Amidala?',
+ 'How do you view Yoda?',
+ 'Who shot first?',
+ 'Are you familiar with the Expanded Universe?',
+ 'Are you a fan of the expanded universe?',
+ 'Are you a fan of Star Trek?',
+ 'Gender',
+ 'Age', 'Location (Census Region)'
+ ], prefix='Rank')
+
+# list(df5.columns)
+
+df5 = df5.astype(float)
+df5
+
+
+```
+
+## QUESTION|TASK 3
+
+__Validate that the data provided on GitHub lines up with the article by recreating 2 of the visuals from the article.__
+
+_type your results and analysis here_
+
+```{python}
+list(df5.columns)
+```
+
+
+```{python}
+
+df5['total'] = df5['Episode_Star Wars: Episode I  The Phantom Menace'] + df5['Episode_Star Wars: Episode II  Attack of the Clones'] + df5['Episode_Star Wars: Episode III  Revenge of the Sith'] + df5['Episode_Star Wars: Episode IV  A New Hope'] + df5['Episode_Star Wars: Episode V The Empire Strikes Back'] + df5['Episode_Star Wars: Episode VI Return of the Jedi']
+
+count = (df5['total'] != 0).count()
+count
+```
+
+```{python}
+df6 = df5[['Episode_Star Wars: Episode I  The Phantom Menace',
+ 'Episode_Star Wars: Episode II  Attack of the Clones',
+ 'Episode_Star Wars: Episode III  Revenge of the Sith',
+ 'Episode_Star Wars: Episode IV  A New Hope',
+ 'Episode_Star Wars: Episode V The Empire Strikes Back',
+ 'Episode_Star Wars: Episode VI Return of the Jedi']]
+
+df7 = pd.DataFrame(df6.sum()).reset_index()
+df7.columns= ['Episode', 'Total']
+df7['%'] = (df7['Total'] / len(df5) * 100)
+df7
+
+
+
+```
+
+```{python}
+
+fig = px.bar(df7, x='%', y='Episode')
+
+fig
+
+```
+
+
+```{python}
+df5['First'] = df5['Rank_Greedo'] + df5['Rank_Han'] + df5["Rank_I don't understand this question"]
+
+count1 = (df5['First'] != 0).count()
+
+count1
+```
+
+
+```{python}
+df8 = df5[['Rank_Greedo', 'Rank_Han', "Rank_I don't understand this question"]]
+
+df9 = pd.DataFrame(df8.sum()).reset_index()
+df9.columns= ['Name', 'Total']
+df9['%'] = (df9['Total'] / len(df5) * 100)
+df9
+
+
+```
+
+
+```{python}
+fig = px.bar(df9, x='%', y='Name')
+
+fig
+```
+
+## QUESTION|TASK 4
+
+__Build a machine learning model that predicts whether a person makes more than $50k. Describe your model and report the accuracy.__
+
+_type your results and analysis here_
+
+```{python}
+
+# feature_cols =['Education', 'Episode_Star Wars: Episode I  The Phantom Menace', 'Episode_Star Wars: Episode II  Attack of the Clones', 'Episode_Star Wars: Episode III  Revenge of the Sith',
+#  'Episode_Star Wars: Episode IV  A New Hope', 'Episode_Star Wars: Episode V The Empire Strikes Back', 'Episode_Star Wars: Episode VI Return of the Jedi', 'Rank_1.0', 'Rank_2.0', 'Rank_3.0', 'Rank_4.0', 'Rank_5.0', 'Rank_6.0', 'Rank_1.0', 'Rank_2.0',
+#  'Rank_3.0', 'Rank_3.0', 'Rank_3.0', 'Rank_4.0', 'Rank_4.0',
+#  'Rank_4.0', 'Rank_5.0', 'Rank_5.0', 'Rank_5.0', 'Rank_6.0', 'Rank_6.0', 'Rank_6.0', 'Rank_6.0', 'Rank_1.0', 'Rank_1.0', 'Rank_1.0', 'Rank_1.0', 'Rank_2.0', 'Rank_2.0', 'Rank_2.0', 'Rank_2.0', 'Rank_3.0', 'Rank_3.0', 'Rank_3.0', 'Rank_3.0',
+#  'Rank_4.0', 'Rank_4.0', 'Rank_4.0', 'Rank_4.0', 'Rank_5.0', 'Rank_5.0', 'Rank_5.0', 'Rank_5.0', 'Rank_6.0', 'Rank_6.0', 'Rank_6.0', 'Rank_6.0', 'Rank_1.0', 'Rank_1.0', 'Rank_1.0', 'Rank_1.0', 'Rank_2.0', 'Rank_2.0', 'Rank_3.0', 'Rank_3.0',
+#  'Rank_3.0', 'Rank_4.0', 'Rank_5.0', 'Rank_6.0', 'Rank_1.0', 'Rank_2.0', 'Rank_3.0', 'Rank_4.0', 'Rank_5.0', 'Rank_6.0', 'Rank_1.0', 'Rank_2.0', 'Rank_3.0', 'Rank_4.0', 'Rank_5.0', 'Rank_6.0', 'Rank_Yes', 'Rank_No', 'Rank_Yes', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably',
+#  'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably', 'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably','Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably', 'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably', 'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Neither favorably nor unfavorably (neutral)', 'Rank_Somewhat favorably', 'Rank_Somewhat unfavorably', 'Rank_Unfamiliar (N/A)', 'Rank_Very favorably',
+#  'Rank_Very unfavorably', 'Rank_Greedo', 'Rank_Han', "Rank_I don't understand this question", 'Rank_No', 'Rank_Yes', 'Rank_No', 'Rank_Yes', 'Rank_No', 'Rank_Yes', 'Rank_Female', 'Rank_Male', 'Rank_0.0', 'Rank_1.0', 'Rank_2.0', 'Rank_3.0',
+#  'Rank_East North Central', 'Rank_East South Central', 'Rank_Middle Atlantic','Rank_Mountain', 'Rank_New England', 'Rank_Pacific', 'Rank_South Atlantic', 'Rank_West North Central', 'Rank_West South Central']
+
+# x=df[feature_cols]
+# y=df['More than 50k']
+ 
+
+```
