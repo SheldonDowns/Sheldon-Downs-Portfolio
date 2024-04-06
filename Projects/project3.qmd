@@ -1,7 +1,7 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Client Report - Project 3: Finding relationships in baseball"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Sheldon Downs"
 format:
   html:
     self-contained: true
@@ -25,4 +25,219 @@ execute:
     
 ---
 
-### Paste in a template
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import sqlite3
+
+pd.set_option('display.max_columns', 200)
+```
+
+
+## Elevator pitch
+
+_In this project I was given data on Baseball players and teams that span a variety of years and leagues. With the data I was able to find the players that attended BYUI and what teams they played for with their associated salaries. I then found the players with the best batting averages starting with players that have batted at least once that then at least ten times that year and then the players with the best career batting average that have batted at least 100 times. For the last part of the project I compared the home runs per year of the Toronto Blue Jays and the New York Yankees_
+
+
+```{python}
+#| label: project-data
+#| code-summary: Read and format project data
+
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+con = sqlite3.connect('lahmansbaseballdb.sqlite')
+
+```
+
+
+## QUESTION|TASK 1
+
+__Write an SQL query to create a new dataframe about baseball players who attended BYU-Idaho. The new table should contain five columns: playerID, schoolID, salary, and the yearID/teamID associated with each salary. Order the table by salary (highest to lowest) and print out the table in your report.__
+
+
+```{python}
+
+df1 = pd.read_sql_query('''
+  SELECT
+    p.playerid,
+    c.schoolid,
+    salary,
+    s.teamid,
+    s.yearid
+  FROM 
+    people p
+  JOIN 
+    collegeplaying c
+  ON
+    p.playerid = c.playerid
+  JOIN 
+    salaries s
+  ON 
+    p.playerid = s.playerid
+  JOIN
+    schools sc
+  ON 
+    c.schoolid = sc.schoolid
+  WHERE
+    sc.schoolid = 'idbyuid'
+  GROUP BY
+    salary
+  ORDER BY
+    salary DESC
+''', 
+con)
+
+df1
+```
+
+_This table above shows the two Baseball players that attended BYUI with their salaries for each team they played for._
+
+## QUESTION|TASK 2
+
+__This three-part question requires you to calculate batting average (number of hits divided by the number of at-bats)__
+
+
+__a. Write an SQL query that provides playerID, yearID, and batting average for players with at least 1 at bat that year. Sort the table from highest batting average to lowest, and then by playerid alphabetically. Show the top 5 results in your report__
+
+```{python}
+con = sqlite3.connect('lahmansbaseballdb.sqlite')
+df2 = pd.read_sql_query('''
+    SELECT
+   p.playerid,
+   b.yearid,
+   cast((b.h) as float) / cast((b.ab) as float) Batting_Avg
+  FROM 
+    people p
+  JOIN 
+    batting b
+  ON
+    p.playerid = b.playerid
+  GROUP BY
+    b.yearid
+  HAVING
+    b.ab >=1
+  ORDER BY
+    Batting_Avg DESC
+  LIMIT 5
+
+''', 
+con)
+
+df2
+
+```
+
+_This table shows the players with the best batting average with the players coming up to bat at least one time that year._
+
+__b. Use the same query as above, but only include players with at least 10 at bats that year. Print the top 5 results.__
+```{python}
+con = sqlite3.connect('lahmansbaseballdb.sqlite')
+df2 = pd.read_sql_query('''
+  SELECT
+   p.playerid,
+   b.yearid,
+   cast((b.h) as float) / cast((b.ab) as float) Batting_Avg
+
+  FROM 
+    people p
+  JOIN 
+    batting b
+  ON
+    p.playerid = b.playerid
+  GROUP BY
+    b.yearid
+  HAVING
+    b.ab >=10
+  ORDER BY
+    Batting_Avg DESC
+  LIMIT 5
+
+''', 
+con)
+
+df2
+```
+
+_This table shows the players with the best batting average with the players coming up to bat at least ten times that year._
+
+__c. Now calculate the batting average for players over their entire careers (all years combined). Only include players with at least 100 at bats, and print the top 5 results.__
+
+
+```{python}
+con = sqlite3.connect('lahmansbaseballdb.sqlite')
+df2 = pd.read_sql_query('''
+  SELECT
+   p.playerid,
+      cast(sum(b.h) as float) / cast(sum(b.ab) as float) Batting_Avg
+  FROM 
+    people p
+  JOIN 
+    batting b
+  ON
+    p.playerid = b.playerid
+  GROUP BY
+    p.playerid
+  HAVING
+    sum(b.ab)>=100
+  ORDER BY
+    Batting_Avg DESC
+  LIMIT 5
+
+''', 
+con)
+
+df2
+```
+
+_This table shows the top 5 players with the best batting average over their career as long as they have batted at least 100 times._
+
+
+## QUESTION|TASK 3
+
+__Pick any two baseball teams and compare them using a metric of your choice (average salary, home runs, number of wins, etc). Write an SQL query to get the data you need, then make a graph using Plotly Express to visualize the comparison. What do you learn?.__
+
+_I am choosing to compare the home runs per year between the Toronto Blue Jays and the New York Yankies beginning in 1977 when the Blue Jays had their first season._
+
+
+```{python}
+con = sqlite3.connect('lahmansbaseballdb.sqlite')
+df3 = pd.read_sql_query('''
+  SELECT
+    name as Team_Name,
+    hr AS Home_Runs,
+    yearid as Year
+  FROM 
+    teams
+  WHERE 
+    name in ('Toronto Blue Jays', 'New York Yankees')
+  GROUP BY 
+    yearid, name
+  HAVING 
+    yearid >=1977
+''', 
+con)
+
+df3
+
+
+```
+
+
+```{python}
+
+fig = px.line(
+  df3,
+  x = 'Year',
+  y = 'Home_Runs',
+  color = 'Team_Name',
+  title = 'Toronto home runs Vs. New York home runs'
+)
+
+fig
+```
+
+_The graph above shows that most years the Toronto Blue Jays had more home runs than the New York Yankies._
