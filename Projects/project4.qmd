@@ -1,7 +1,7 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Client Report - Project 4"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Sheldon Downs"
 format:
   html:
     self-contained: true
@@ -25,4 +25,189 @@ execute:
     
 ---
 
-### Paste in a template
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import pandas as pd
+import numpy as np
+
+from sklearn.tree import DecisionTreeClassifier 
+# Import Decision Tree Classifier
+from sklearn import metrics #Import scikit-learn metrics module for accuracy calculation
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
+
+```
+
+
+## Elevator pitch
+
+_This project demonstrates machine learning using the dwellings_ml.csv data set to create a model that predicts homes that were built before 1980. The first section has 3 graphs with possible key features that could help the model predict houses before 1980. Then The model is built, and I highlight some of the key features making sure it is at least 90% accurate. At the end I go over the classification model using 3 different evaluation metrics to insure the quality of the model._
+
+
+```{python}
+#| label: project-data
+#| code-summary: Read and format project data
+
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_csv("dwellings_ml.csv")
+
+```
+
+## QUESTION|TASK 1
+
+__Create 2-3 charts that evaluate potential relationships between the home variables and before1980. Explain what you learn from the charts that could help a machine learning algorithm.__
+
+
+_The code bellow creates a histogram comparing the relationship of the number of stories per house before and after 1980. The pattern of the relationship can potentially effect the choices for of the machine learning models_
+
+
+```{python }
+
+fig = px.histogram(
+  df,
+  x="stories",
+  color = "before1980",
+  title = "Number of Stories Vs Before 1980"
+)
+
+fig
+```
+
+_The graph above shows that the majority of houses built before 1980 had 1 stories and the majority after 1980 had 2._
+
+_The next graph is a boxplot that compares the selling price of the homes built before and after 1980. This relationship could also be beneficial to the machine learning as there is a difference in the selling prices_
+
+
+```{python }
+
+fig2 = px.box(
+  df,
+  x="before1980",
+  y="sprice",
+  color = "before1980",
+  title = "Selling Price of Home",
+  
+
+)
+
+fig2.update_layout(yaxis=dict(title='Selling Price'))
+fig2.update_layout(yaxis_range=[0, 3000000])
+fig2
+```
+
+_The graph shows that homes built after 1980 on average sold for higher prices than the houses built before 1980_
+
+
+_This last chart is a bar graph comparing the basement space for homes built before and after 1980. The relationship could be beneficial to the machine learning module because of the difference in space_
+
+```{python}
+fig3 = px.box(
+  df,
+  x="before1980",
+  y="basement",
+  color = "before1980",
+  title = "Basment Space of Homes"
+
+)
+fig3.update_layout(yaxis=dict(title='Basement Space'))
+fig3.update_layout(yaxis_range=[-100, 5500])
+
+fig3
+```
+
+_The graph shows that the basement size for houses built after 1980 are larger on average that houses built before 1980._
+
+## QUESTION|TASK 2
+
+__Build a classification model labeling houses as being built “before 1980” or “during or after 1980”. Your goal is to reach or exceed 90% accuracy. Explain your final model choice (algorithm, tuning parameters, etc) and describe what other models you tried.__
+
+_The classification model that I made uses the Random Forest Classifier with a 70% training and 30% test. The reason I used this method is because the method combines multiple decision trees, which helps in reducing overfitting and capturing the true underlying patterns in the data. I also tried the GaussinNB and would only get around 60% accuracy._
+
+
+```{python}
+feature_cols =['abstrprd', 'livearea','finbsmnt', 'basement', 'totunits', 'stories', 'nocars', 'numbdrm', 'numbaths', 'sprice', 'deduct', 'netprice','tasp', 'smonth', 'syear', 'condition_AVG', 'condition_Excel', 'condition_Fair', 'condition_Good', 'condition_VGood', 'quality_A', 'quality_B', 'quality_C', 'quality_D','quality_X', 'gartype_Att', 'gartype_Att/Det', 'gartype_CP',
+ 'gartype_Det', 'gartype_None', 'gartype_att/CP', 'gartype_det/CP', 'arcstyle_BI-LEVEL', 'arcstyle_CONVERSIONS', 'arcstyle_END UNIT', 'arcstyle_MIDDLE UNIT', 'arcstyle_ONE AND HALF-STORY', 'arcstyle_ONE-STORY', 'arcstyle_SPLIT LEVEL', 'arcstyle_THREE-STORY','arcstyle_TRI-LEVEL','arcstyle_TRI-LEVEL WITH BASEMENT', 'arcstyle_TWO AND HALF-STORY', 'arcstyle_TWO-STORY', 'qualified_Q', 'qualified_U', 'status_I', 'status_V']
+
+x=df[feature_cols]
+y=df.before1980
+
+```
+
+```{python}
+# Split dataset into training set and test set
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3) # 70% training and 30% test
+```
+
+
+## QUESTION|TASK 3
+
+__Justify your classification model by discussing the most important features selected by your model. This discussion should include a chart and a description of the features.__
+
+_The chart bellow shows the most important features selected by the model._
+
+```{python}
+df2 = df
+
+df2 = df2.drop(['parcel', 'yrbuilt'], axis=1)
+
+```
+
+
+
+```{python}
+correlation_matrix = df2.corr()
+# Get absolute values of correlation matrix
+abs_corr = correlation_matrix.abs()
+
+# Get the indices of the top n correlation values
+n = 10  # Adjust as needed
+top_corr_cols = abs_corr.nlargest(n, 'before1980')['before1980'].index
+
+# Print top n correlation values
+print(correlation_matrix.loc[top_corr_cols, 'before1980'])
+
+```
+
+_The table shows that the features that were the most significant in the model was the arcstyle_One-story which the style of home with one story, the stories features which is the amount of stories in the houses, and the numbaths feature which is the amount of bathrooms in the houses_
+
+## QUESTION|TASK 4
+
+__Describe the quality of your classification model using 2-3 different evaluation metrics. You also need to explain how to interpret each of the evaluation metrics you use.__
+
+_The classification model's performance is assessed using three key evaluation metrics: Accuracy, the Confusion Matrix, and the Classification Report. In summary model demonstrates high accuracy, indication strong overall performance. The confusion matrix and classification report offer insights into model's ability to correctly classify houses built before 1980 and provide detailed information on the trade offs between precision and recall. The high precision and recall values in classification 1 shows that the model is effectively identifying the houses built before 1980 while maintaining a good balance between precision and recall_
+
+```{python}
+# Create Decision Tree classifer object
+clf = RandomForestClassifier()
+
+# Train Decision Tree Classifer
+clf = clf.fit(X_train, y_train)
+
+#Predict the response for test dataset
+y_pred = clf.predict(X_test)
+
+target = [0,1]
+
+accuracy = metrics.accuracy_score(y_test, y_pred)
+accuracy = round(accuracy * 100, 2)
+
+
+print(f"Accuracy: {accuracy}%")
+print()
+print(f"Confusion Matrix: {confusion_matrix(y_test, y_pred)}")
+print()
+print("Classification Report:")
+print(classification_report(y_test, y_pred, target_names=None))
+
+```
+
+_Based on the evaluation of the model above the accuracy score was 92.45%. In the confusion matrix there was 2306 houses correctly classified as built before 1980_
